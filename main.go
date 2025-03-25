@@ -423,11 +423,11 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"*", "https://gpters.automationpro.online"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
@@ -441,7 +441,12 @@ func main() {
 	})
 
 	// Swagger docs
-	r.Get("/swagger/*", httpSwagger.WrapHandler)
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("https://gpters.automationpro.online/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	))
 
 	// Start the server
 	port := os.Getenv("PORT")

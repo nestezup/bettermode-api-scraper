@@ -95,9 +95,9 @@ var doc = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "gpters.automationpro.online",
 	BasePath:         "/api/v1",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"https"},
 	Title:            "BetterMode API Scraper",
 	Description:      "A server that retrieves content from BetterMode API",
 	InfoInstanceName: "swagger",
