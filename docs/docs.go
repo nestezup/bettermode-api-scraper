@@ -10,9 +10,9 @@ var doc = `{
         "description": "A server that retrieves content from BetterMode API",
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "gpters.automationpro.online",
     "basePath": "/api/v1",
-    "schemes": ["http"],
+    "schemes": ["https"],
     "paths": {
         "/content": {
             "post": {
