@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# 로그 파일
+*.log
+logs/
+
+# IDE 관련 파일
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# 빌드된 바이너리 (Dockerfile.simple에서는 필요)
+# bettermode-api
+
+# Go 관련 파일
+vendor/
+*.test
+*.out
+go.work
+
+# 환경 변수 파일
+.env
+
+# Docker 관련 파일 (필요하다면 주석 처리)
+# Dockerfile
+# Dockerfile.simple
+# docker-compose.yml 
