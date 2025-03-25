@@ -167,6 +167,12 @@ type ContentResponse struct {
 	CharCount int    `json:"char_count,omitempty"`
 }
 
+// URLRequest는 BetterMode URL로부터 콘텐츠를 가져오기 위한 요청 구조체입니다
+type URLRequest struct {
+	URL    string `json:"url"`
+	Format string `json:"format,omitempty"` // "html" (default) or "text"
+}
+
 // 전역 토큰 관리자
 var tokenManager *TokenManager
 
@@ -413,6 +419,88 @@ func stripHTMLTags(html string) string {
 	return strings.TrimSpace(text)
 }
 
+// extractPostIDFromURL은 BetterMode URL에서 post ID를 추출합니다
+func extractPostIDFromURL(url string) (string, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 1 {
+		return "", fmt.Errorf("invalid URL format")
+	}
+
+	lastPart := parts[len(parts)-1]
+	// URL 형식: https://www.gpters.org/dev/post/youtube-controller-chrome-extension-XwcaTuNaJoPnfg1
+	// 마지막 부분의 "-" 이후가 post ID입니다
+	if idx := strings.LastIndex(lastPart, "-"); idx != -1 && idx < len(lastPart)-1 {
+		return lastPart[idx+1:], nil
+	}
+
+	return lastPart, nil // 다른 형식의 URL인 경우 마지막 부분 전체를 post ID로 사용
+}
+
+// GetContentFromURL godoc
+// @Summary Get content from BetterMode URL
+// @Description Extracts post ID from URL and retrieves content
+// @Tags content
+// @Accept json
+// @Produce json
+// @Param request body URLRequest true "BetterMode URL and optional format (html or text)"
+// @Success 200 {object} ContentResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /url [post]
+func getContentFromURL(w http.ResponseWriter, r *http.Request) {
+	var req URLRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.URL == "" {
+		http.Error(w, "URL is required", http.StatusBadRequest)
+		return
+	}
+
+	// Set default format to html if not specified
+	if req.Format == "" {
+		req.Format = "html"
+	} else if req.Format != "html" && req.Format != "text" {
+		http.Error(w, "Format must be 'html' or 'text'", http.StatusBadRequest)
+		return
+	}
+
+	// Extract post ID from URL
+	postID, err := extractPostIDFromURL(req.URL)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error extracting post ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Fetch content and title
+	content, title, err := fetchContentFromBetterMode(postID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching content: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Clean up the content value
+	processedContent := cleanupContent(content)
+
+	// If format is text, try to strip HTML tags
+	if req.Format == "text" {
+		processedContent = stripHTMLTags(processedContent)
+	}
+
+	// Prepare the response
+	response := ContentResponse{
+		Content:   processedContent,
+		Format:    req.Format,
+		PostID:    postID,
+		Title:     title,
+		CharCount: len(processedContent),
+	}
+
+	render.JSON(w, r, response)
+}
+
 func main() {
 	// 토큰 관리자 초기화
 	tokenManager = NewTokenManager("www.gpters.org")
@@ -434,6 +522,7 @@ func main() {
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/content", getContent)
+		r.Post("/url", getContentFromURL) // URL로부터 콘텐츠 가져오는 새 엔드포인트
 
 		// 토큰 관리 엔드포인트 (관리자용) 추가
 		r.Get("/token/refresh", handleTokenRefresh)

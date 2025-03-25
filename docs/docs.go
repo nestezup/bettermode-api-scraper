@@ -88,6 +88,81 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/url": {
+            "post": {
+                "description": "Extracts post ID from URL and retrieves content",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["content"],
+                "summary": "Get content from BetterMode URL",
+                "parameters": [
+                    {
+                        "description": "BetterMode URL and optional format",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "description": "The BetterMode post URL to retrieve"
+                                },
+                                "format": {
+                                    "type": "string",
+                                    "description": "Format of the returned content",
+                                    "enum": ["html", "text"],
+                                    "default": "html"
+                                }
+                            },
+                            "required": ["url"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string",
+                                    "description": "The content of the post"
+                                },
+                                "format": {
+                                    "type": "string",
+                                    "description": "The format of the content (html or text)"
+                                },
+                                "post_id": {
+                                    "type": "string",
+                                    "description": "The ID of the post"
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "description": "The title of the post"
+                                },
+                                "char_count": {
+                                    "type": "integer",
+                                    "description": "The character count of the content"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     }
 }`
